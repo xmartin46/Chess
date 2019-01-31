@@ -5,7 +5,7 @@ const expressValidator = require('express-validator')
 const config = require('./config')
 const crypto = require('crypto')
 const chess = require('chess.js')
-const hp_config = require('./helpers/config')
+//const hp_config = require('./helpers/config')
 const app = express()
 const api = require('./routes/index.js')
 
