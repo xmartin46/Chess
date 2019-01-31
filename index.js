@@ -6,7 +6,7 @@ const config = require('./config')
 
     //console.log('Connection to Database stablished...')
 
-    app.listen((process.env.PORT || 8080), (process.env.HOST || '0.0.0.0'), () => {
-        console.log(`API REST running on https://${(process.env.HOST || '0.0.0.0.')}:${config.port}`)
+    app.listen(config.port, config.host, () => {
+        console.log(`API REST running on https://${config.host}:${config.port}`)
     })
 //})
