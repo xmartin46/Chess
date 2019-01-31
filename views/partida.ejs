@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <% include ./partials/head.ejs %>
+
+    <style>
+        #board {
+            margin: auto 10em;
+        }
+
+        div {
+            display: inline-block;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 10px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        form {
+            background: #000;
+            padding: 3px;
+            /*position: fixed;*/
+            /*bottom: 0;*/
+            width: 117%;
+            /* 50%*/
+        }
+
+        form input {
+            border: 0;
+            padding: 10px;
+            width: 77%;
+            margin-right: .5%;
+        }
+
+        form button {
+            width: 9%;
+            background: rgb(130, 224, 255);
+            border: none;
+            padding: 10px;
+        }
+
+        #messages {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        #messages li {
+            padding: 5px 10px;
+        }
+
+        #messages li:nth-child(odd) {
+            background: #eee;
+        }
+
+        #messages {
+            word-wrap: break-word;
+            width: 550px;
+            height: 335px;
+            overflow: auto;
+            position: relative;
+        }
+    </style>
+
+</head>
+
+<body>
+    <% include ./partials/nav.ejs %>
+
+    <div>
+        <p>Status: <span id="status"></span></p>
+    </div>
+
+    <div id="board" style="width: 400px"></div>
+    <script src="js/chess.min.js"></script>
+    <script src="match.js"></script>
+
+    <div id="chat">
+        <ul id="messages"></ul>
+
+        <form action="" id="message_form">
+            <input id="text" autocomplete="off"><button>Send</button>
+        </form>
+    </div>
+</body>
+
+</html>

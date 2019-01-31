@@ -1,0 +1,165 @@
+const express = require('express')
+const bodyParser = require('body-parser')
+const cookieParser = require('cookie-parser')
+const expressValidator = require('express-validator')
+const config = require('./config')
+const crypto = require('crypto')
+const chess = require('chess.js')
+const hp_config = require('./helpers/config')
+const app = express()
+const api = require('./routes/index.js')
+
+// Static files
+app.use('/api/user', express.static('public'));
+app.use('*/css', express.static('public/css'));
+app.use('*/js', express.static('public/js'));
+app.use('*/img', express.static('public/img'));
+
+// Socket
+const server = require('http').Server(app)
+const io = require('socket.io')(server)
+
+io.on('connection', (socket) => {
+    console.log('User connected...')
+
+    // HANDSHAKING de benvinguda
+    socket.emit('handshaking')
+
+    socket.on('handshaking', (msg) => {
+        socket.client_info = msg
+
+        // Take room fen (state) from DB
+        config.db.query('SELECT fen FROM rooms WHERE name = ?', [msg.room], (err, results, fields) => {
+            if (err) throw err
+
+            if (results.length == 0) throw err // ERRRRRROR
+
+            const game_state = results[0].fen
+
+            socket.client_info.game_state = game_state
+
+            socket.emit('handshaking fen', game_state)
+        })
+    })
+
+    socket.on('what am I', (msg) => {
+        config.db.query('SELECT user_white, user_black FROM rooms WHERE name = ?', [msg.room], (err, results, fields) => {
+            if (err) throw err
+
+            if (results.length == 0) throw err //????????????????????
+
+            if (msg.user_id == results[0].user_white) {
+                socket.emit('you are white')
+            } else if (!results[0].user_black) {
+                config.db.query('UPDATE rooms SET user_black = ? WHERE name = ?', [msg.user_id, msg.room], (err, results, fields) => {
+                    if (err) throw err
+                })
+
+                socket.emit('you are black')
+            } else if (msg.user_id == results[0].user_black) {
+                socket.emit('you are black')
+            } else {
+                socket.emit('you are spectator')
+            }
+        })
+    })
+
+    socket.on('my id?', (user) => {
+        config.db.query('SELECT id FROM users WHERE username = ?', [user], (err, results, fields) => {
+            if (err) throw err
+
+            if (results.length == 0) throw err //////// ??????????????
+            
+            socket.emit('your id', results[0].id)
+        })
+    })
+
+    /*socket.on('disconnect', () => {
+        console.log('User disconnected...')
+        io.emit('disconnect', socket.client_info.room)
+    })*/
+
+    socket.on('chat message', function (msg) {
+        io.emit('chat message', msg)
+    })
+
+    /*socket.on('disconnect game state', (msg) => {
+        // TODOOOOOOOOOOOOOOOO
+    })*/
+
+    socket.on('move', (game_state) => {
+        socket.client_info.game_state = game_state
+
+        config.db.query('UPDATE rooms SET fen = ? WHERE name = ?', [game_state, socket.client_info.room], (err, results, fields) => {
+            if (err) throw err
+        })
+
+        const message = {
+            game_state: game_state,
+            room: socket.client_info.room
+        }
+
+        io.emit('move', message)
+    })
+})
+
+// Authentication
+const session = require('express-session')
+const passport = require('passport')
+const MySQLStore = require('express-mysql-session')(session);
+const LocalStrategy = require('passport-local').Strategy
+
+// View
+app.set('view engine', 'ejs')
+
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
+
+app.use(expressValidator())
+
+// Authentication
+app.use(cookieParser())
+
+/*var options = {
+    host: hp_config.DB_HOST,
+    user: hp_config.DB_USER,
+    password: hp_config.DB_PASSWORD,
+    database: hp_config.DB_NAME,
+    port: hp_config.DB_PORT
+}
+
+var sessionStore = new MySQLStore(options)
+
+app.use(session({
+    secret: hp_config.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: sessionStore,
+    // HTTPS => cookie: { secure: true }
+}))*/
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(new LocalStrategy(
+    function (username, password, done) {
+        config.db.query('SELECT id, password, salt FROM users WHERE username = ?', [username], (err, results, field) => {
+            if (err) return done(err)
+
+            if (results.length === 0) return done(null, false)
+            if (results.length > 1) return done(null, false)
+
+            const userSalt = results[0].salt
+            const userPassword = results[0].password
+
+            var hashedPassword = crypto.pbkdf2Sync(password, userSalt, 1000, 64, `sha512`).toString(`hex`);
+            if (hashedPassword !== userPassword) return done(null, false)
+
+            return done(null, { user_id: results[0].id, user_name: username })
+        })
+    }
+));
+
+app.use('/api', api)
+
+module.exports = server

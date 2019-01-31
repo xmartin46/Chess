@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <% include ./partials/head.ejs %>
+
+    <style>
+        #forms {
+            margin-top: 6em;
+        }
+
+        #submit {
+            margin: auto 3em;
+        }
+
+        #submitMatch {
+            margin: auto 2em;
+        }
+
+        #matches {
+            overflow-y: scroll;
+            height: 400px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <% include ./partials/nav.ejs %>
+
+    <% if (error) {  %>
+    <div class="alert alert-danger" role="alert">
+        <%= error %>
+    </div>
+    <% } %>
+
+    <div class="row" id="forms">
+        <div class="col-lg-1"></div>
+
+        <div class="col-lg-3 col-sm-6" id="matches">
+            <p><b>YOUR MATCHES</b></p>
+
+            <% if (matches) { %>
+                <% for (var i = 0; i < matches.length; i++) { %>
+                    <p><%= matches[i].name %> <a href="?code=<%= matches[i].name %>" class="btn btn-outline-primary btn-sm">JOIN</a></p>
+                <% } %>
+            <% } else { %>
+                <p>You have NOT joined any match yet</p>
+            <% } %>
+        </div>
+
+        <div class="col-lg-1"></div>
+
+        <div class="col-lg-3 col-sm-6">
+            <p><b>JOIN AN EXISTING ROOM</b></p>
+            <form action="match" method="POST">
+                <input type="text" name="id" placeholder="code">
+                <p></p>
+                Only if the room has password:
+                <input type="password" name="password" placeholder="password"><br><br>
+                <input type="submit" value="Submit" id="submit">
+            </form>
+        </div>
+
+        <div class="col-lg-1"></div>
+
+        <div class="col-lg-3 col-sm-6">
+            <p><b>CREATE A NEW ROOM</b></p>
+            <form action="match" method="POST">
+                <input type="submit" value="New Match" id="submitMatch">
+            </form>
+        </div>
+
+        <div class="col-lg-1"></div>
+    </div>
+
+</body>
+
+</html>
