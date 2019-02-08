@@ -197,3 +197,17 @@ $(function () {
 
   updateStatus();
 });
+
+
+document.addEventListener("touchmove", ScrollStart, false);
+document.addEventListener("scroll", Scroll, false);
+
+function ScrollStart() {
+    //start of scroll event for iOS
+}
+
+function Scroll() {
+    //end of scroll event for iOS
+    //and
+    //start/end of scroll event for other browsers
+}
