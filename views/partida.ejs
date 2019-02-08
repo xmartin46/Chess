@@ -73,6 +73,10 @@
         html, body {
             overflow: hidden;
         }
+
+        body {
+            position: fixed; 
+        }
     </style>
 
 </head>
@@ -95,6 +99,12 @@
             <input id="text" autocomplete="off"><button>Send</button>
         </form>
     </div>
+
+    <script>
+        document.getElementById('board').ontouchend = (e) => {
+            e.preventDefault();
+        };
+    </script>
 </body>
 
 </html>
