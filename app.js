@@ -67,7 +67,7 @@ io.on('connection', (socket) => {
     socket.on('my id?', (user) => {
         config.db.query('SELECT id FROM users WHERE username = $1', [user], (err, results, fields) => {
             if (err) throw err
-
+            
             if (results.rows.length == 0) throw err //////// ??????????????
             
             socket.emit('your id', results.rows[0].id)

@@ -7,7 +7,7 @@
 
     <style>
         #board {
-            margin: auto 10em;
+            margin: auto 5em;
         }
 
         div {
@@ -30,7 +30,7 @@
             padding: 3px;
             /*position: fixed;*/
             /*bottom: 0;*/
-            width: 117%;
+            width: 100%;
             /* 50%*/
         }
 
@@ -42,7 +42,7 @@
         }
 
         form button {
-            width: 9%;
+            width: auto;
             background: rgb(130, 224, 255);
             border: none;
             padding: 10px;
@@ -64,7 +64,7 @@
 
         #messages {
             word-wrap: break-word;
-            width: 550px;
+            width: 400px;
             height: 335px;
             overflow: auto;
             position: relative;
@@ -73,7 +73,7 @@
 
 </head>
 
-<body>
+<body scroll="no" style="overflow: hidden">
     <% include ./partials/nav.ejs %>
 
     <!-- <div>
