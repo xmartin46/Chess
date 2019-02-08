@@ -15,10 +15,10 @@ function getMatch(req, res) {
 
         res.render('partida', { isLoggedIn: true, username: req.user.user_name })
     } else {
-        config.db.query('SELECT name FROM rooms WHERE user_white = ? OR user_black = ?', [req.user.user_id, req.user.user_id], (err, results, fields) => {
+        config.db.query('SELECT name FROM rooms WHERE user_white = $1 OR user_black = $2', [req.user.user_id, req.user.user_id], (err, results, fields) => {
             if (err) throw err
-
-            res.render('match', { isLoggedIn: true, error: req.flash('error'), username: req.user.user_name, matches: results })
+            
+            res.render('match', { isLoggedIn: true, error: req.flash('error'), username: req.user.user_name, matches: results.rows })
         })
     }
 }
@@ -29,7 +29,7 @@ function postMatch(req, res) {
         const code = req.body.id
         const password = req.body.password
 
-        config.db.query('SELECT password FROM rooms WHERE name=?', [code], (err, results, fields) => {
+        config.db.query('SELECT password FROM rooms WHERE name=$1', [code], (err, results, fields) => {
             if (err) throw err
 
             if (results.length == 0) {
@@ -62,7 +62,7 @@ function postMatch(req, res) {
 
         const user = req.session.passport.user.user_id
         const ini_date = Date.now()
-        config.db.query('INSERT INTO rooms(name, user_white, ini_date) VALUES (?, ?, ?)', [code, user, ini_date], (err, results, fields) => {
+        config.db.query('INSERT INTO rooms(name, user_white, ini_date) VALUES ($1, $2, $3)', [code, user, ini_date], (err, results, fields) => {
             if (err) throw err
 
             res.redirect('match?code=' + code)

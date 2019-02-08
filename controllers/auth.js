@@ -23,11 +23,10 @@ function postSignup(req, res) {
     req.checkBody('password_confirm', 'Passwords do not match, please try again.').equals(req.body.password);
 
     const errors = req.validationErrors()
-
+    
     if (errors) {
         res.render('signup', { title: "Registration", errors: errors, isLoggedIn: req.isAuthenticated(), username: '' })
     } else {
-
         const username = req.body.username
         const email = req.body.email
         const password = req.body.password
@@ -39,23 +38,24 @@ function postSignup(req, res) {
         // 64 length and sha512 digest
         const hash = crypto.pbkdf2Sync(password, salt, 1000, 64, `sha512`).toString(`hex`)
 
-        config.db.query('INSERT INTO users(username, email, password, salt) VALUES (?, ?, ?, ?)', [username, email, hash, salt], (err, result) => {
+        config.db.query('INSERT INTO users(username, email, password, salt) VALUES ($1, $2, $3, $4) RETURNING id', [username, email, hash, salt], (err, result) => {
             if (err) throw err
 
-            config.db.query('SELECT LAST_INSERT_ID() as user_id', (err, results, fields) => {
+            if (result.rows.length < 1) res.status(500).send( { message: "Server error (Not inserted)" } )
+
+            if (result.rows.length > 1) res.status(500).send( { message: "Server error (More than one selected/inserted)" } )
+
+            const user_id = result.rows[0].id
+
+            const user = {
+                user_id: user_id,
+                user_name: username
+            }
+            
+            req.login(user, (err) => {
                 if (err) throw err
-
-                const user_id = results[0].user_id
-                const user = {
-                    user_id: user_id,
-                    user_name: username
-                }
-
-                req.login(user, (err) => {
-                    if (err) throw err
-
-                    res.redirect('/api/user/profile')
-                })
+                
+                res.redirect('/api/user/profile')
             })
         })
     }
